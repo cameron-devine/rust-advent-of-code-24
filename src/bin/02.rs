@@ -3,14 +3,14 @@ use itertools::Itertools;
 #[derive(PartialEq)]
 enum SafetyFlag {
     Safe,
-    Unsafe
+    Unsafe,
 }
 
 fn check_report_safety(report: &[u32]) -> SafetyFlag {
     let mut safety = SafetyFlag::Safe;
     let increasing = report[0] < report[1];
     let report_windows = report.iter().tuple_windows();
-    report_windows.for_each(|(a,b)| {
+    report_windows.for_each(|(a, b)| {
         if a.abs_diff(*b) == 0 || a.abs_diff(*b) > 3 || increasing != (a < b) {
             safety = SafetyFlag::Unsafe;
         }
@@ -34,7 +34,10 @@ fn check_dampened_safety(report: &[u32]) -> SafetyFlag {
 pub fn part_one(input: &str) -> Option<u32> {
     let mut answer = 0;
     input.lines().for_each(|l| {
-        let report: Vec<u32> = l.split_whitespace().filter_map(|x| {x.parse::<u32>().ok()}).collect();
+        let report: Vec<u32> = l
+            .split_whitespace()
+            .filter_map(|x| x.parse::<u32>().ok())
+            .collect();
         if check_report_safety(&report) == SafetyFlag::Safe {
             answer += 1;
         }
@@ -45,8 +48,13 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u32> {
     let mut answer = 0;
     input.lines().for_each(|l| {
-        let report: Vec<u32> = l.split_whitespace().filter_map(|x| {x.parse::<u32>().ok()}).collect();
-        if check_report_safety(&report) == SafetyFlag::Safe || check_dampened_safety(&report) == SafetyFlag::Safe {
+        let report: Vec<u32> = l
+            .split_whitespace()
+            .filter_map(|x| x.parse::<u32>().ok())
+            .collect();
+        if check_report_safety(&report) == SafetyFlag::Safe
+            || check_dampened_safety(&report) == SafetyFlag::Safe
+        {
             answer += 1;
         }
     });
