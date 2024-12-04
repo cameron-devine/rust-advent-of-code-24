@@ -1,5 +1,4 @@
 advent_of_code::solution!(2);
-use itertools::Itertools;
 #[derive(PartialEq)]
 enum SafetyFlag {
     Safe,
@@ -7,57 +6,69 @@ enum SafetyFlag {
 }
 
 fn check_report_safety(report: &[u32]) -> SafetyFlag {
-    let mut safety = SafetyFlag::Safe;
     let increasing = report[0] < report[1];
-    let report_windows = report.iter().tuple_windows();
-    report_windows.for_each(|(a, b)| {
-        if a.abs_diff(*b) == 0 || a.abs_diff(*b) > 3 || increasing != (a < b) {
-            safety = SafetyFlag::Unsafe;
-        }
-    });
 
-    safety
+    if report
+        .windows(2)
+        .any(|w| w[0].abs_diff(w[1]) == 0 || w[0].abs_diff(w[1]) > 3 || increasing != (w[0] < w[1]))
+    {
+        SafetyFlag::Unsafe
+    } else {
+        SafetyFlag::Safe
+    }
 }
 
 fn check_dampened_safety(report: &[u32]) -> SafetyFlag {
-    let mut safety = SafetyFlag::Unsafe;
-    for n in 0..report.len() {
-        let mut report_copy = report.to_vec();
-        report_copy.remove(n);
-        if check_report_safety(&report_copy) == SafetyFlag::Safe {
-            safety = SafetyFlag::Safe;
-        };
+    if (0..report.len()).any(|n| {
+        let (left, right) = report.split_at(n);
+        let report_without_n = left.iter().chain(&right[1..]).copied().collect::<Vec<_>>();
+        check_report_safety(&report_without_n) == SafetyFlag::Safe
+    }) {
+        SafetyFlag::Safe
+    } else {
+        SafetyFlag::Unsafe
     }
-    safety
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let mut answer = 0;
-    input.lines().for_each(|l| {
-        let report: Vec<u32> = l
-            .split_whitespace()
-            .filter_map(|x| x.parse::<u32>().ok())
-            .collect();
-        if check_report_safety(&report) == SafetyFlag::Safe {
-            answer += 1;
-        }
-    });
+    let answer: u32 = input
+        .lines()
+        .filter_map(|line| {
+            let report: Vec<u32> = line
+                .split_whitespace()
+                .filter_map(|word| word.parse::<u32>().ok())
+                .collect();
+
+            if check_report_safety(&report) == SafetyFlag::Safe {
+                Some(1) // Count safe reports as 1
+            } else {
+                None
+            }
+        })
+        .sum();
+
     Some(answer)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let mut answer = 0;
-    input.lines().for_each(|l| {
-        let report: Vec<u32> = l
-            .split_whitespace()
-            .filter_map(|x| x.parse::<u32>().ok())
-            .collect();
-        if check_report_safety(&report) == SafetyFlag::Safe
-            || check_dampened_safety(&report) == SafetyFlag::Safe
-        {
-            answer += 1;
-        }
-    });
+    let answer: u32 = input
+        .lines()
+        .filter_map(|line| {
+            let report: Vec<u32> = line
+                .split_whitespace()
+                .filter_map(|word| word.parse::<u32>().ok())
+                .collect();
+
+            if check_report_safety(&report) == SafetyFlag::Safe
+                || check_dampened_safety(&report) == SafetyFlag::Safe
+            {
+                Some(1) // Count safe reports as 1
+            } else {
+                None
+            }
+        })
+        .sum();
+
     Some(answer)
 }
 
