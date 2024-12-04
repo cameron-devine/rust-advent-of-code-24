@@ -3,23 +3,28 @@ use std::collections::HashMap;
 advent_of_code::solution!(1);
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let mut side1 = vec![];
-    let mut side2 = vec![];
+    let pairs: Vec<(i32, i32)> = input
+        .lines()
+        .filter_map(|line| {
+            let mut split = line.split_whitespace();
+            Some((
+                split.next()?.parse::<i32>().ok()?,
+                split.next()?.parse::<i32>().ok()?,
+            ))
+        })
+        .collect();
 
-    input.lines().for_each(|line| {
-        let mut split = line.split_whitespace();
-        side1.push(split.next().unwrap().parse::<i32>().unwrap());
-        side2.push(split.next().unwrap().parse::<i32>().unwrap());
-    });
+    // Separate and sort
+    let (mut side1, mut side2): (Vec<_>, Vec<_>) = pairs.into_iter().unzip();
     side1.sort_unstable();
     side2.sort_unstable();
 
-    let mut answer = 0;
-    side1.iter().zip(side2.iter()).for_each(|(loc1, loc2)| {
-        answer += loc1.abs_diff(*loc2);
-    });
-
-    Some(answer)
+    let sum = side1
+        .iter()
+        .zip(side2.iter())
+        .map(|(&a, &b)| a.abs_diff(b))
+        .sum();
+    Some(sum)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
@@ -28,15 +33,18 @@ pub fn part_two(input: &str) -> Option<u32> {
 
     input.lines().for_each(|line| {
         let mut split = line.split_whitespace();
-        side1.push(split.next().unwrap().parse::<u32>().unwrap());
-        let right_entry = split.next().unwrap().parse::<u32>().unwrap();
-        *side2.entry(right_entry).or_insert(0) += 1;
+        if let (Some(left), Some(right)) = (split.next(), split.next()) {
+            if let (Ok(left_parsed), Ok(right_parsed)) = (left.parse::<u32>(), right.parse::<u32>()) {
+                side1.push(left_parsed);
+                *side2.entry(right_parsed).or_insert(0) += 1;
+            }
+        }
     });
 
-    let mut answer: u32 = 0;
-    side1.iter().for_each(|loc| {
-        answer += loc * side2.get(loc).unwrap_or(&0);
-    });
+    let answer = side1
+        .iter()
+        .map(|loc| loc * side2.get(loc).unwrap_or(&0))
+        .sum();
 
     Some(answer)
 }
